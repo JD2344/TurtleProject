@@ -2,6 +2,7 @@ package helperFunctions;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.swing.JOptionPane;
 
@@ -21,16 +22,17 @@ public class UtilityFuncs {
 	 * @return Int or null if not a number
 	 */
 	public Integer parseIntOrNull(String value) {
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException e) {
+		Scanner s = new Scanner(value);
+		
+		if(s.hasNextInt()) {
+			return s.nextInt();
+		} else {
 			return 0;
 		}
 	}
 
 	/**
 	 * checks if integer is within RGB range
-	 * 
 	 * @param num
 	 * @return boolean
 	 */
