@@ -6,10 +6,6 @@ import turtleExt.TurtleSystem;
  *
  */
 public class MainClass {
-	/**
-	 * TODO: Make sure frame is passed turtle graphics object from TurtleSystem.
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		//Get a turtle instance
 		TurtleSystem turtle = TurtleSystem.getTurtle();

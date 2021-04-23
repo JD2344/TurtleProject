@@ -58,7 +58,7 @@ public class TurtleSystem extends TurtleGraphics {
 	public static TurtleSystem getTurtle() {
 		return ts;
 	}
-
+	
 	/**
 	 * Overrides TurtleGraphics processCommand User input is handled to allow
 	 * calling of methods from TurtleCommands Package.
