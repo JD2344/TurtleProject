@@ -1,10 +1,13 @@
 package turtleExt;
 
 import java.awt.FlowLayout;
-import java.awt.Graphics;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
@@ -13,7 +16,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
-import uk.ac.leedsbeckett.oop.TurtleGraphics;
 import helperFunctions.UtilityFuncs;
 
 /**
@@ -22,17 +24,21 @@ import helperFunctions.UtilityFuncs;
  *
  */
 public class TurtleUI {
-	private static TurtleGraphics tG;
-	private UtilityFuncs helpS = new UtilityFuncs();
+	private TurtleSystem tS;
+	private UtilityFuncs helpS;
+	private FileHandling fileHandle;
+	public JFrame mainFrame = new JFrame();//create a frame to display the turtle panel on
 	
 	/**
 	 * Handles the GUI for the Main program
 	 * @param tg TurtleGraphics Object to passed
 	 */
-	public TurtleUI(TurtleGraphics tg)
+	public TurtleUI(TurtleSystem ts)
 	{
-		tG = tg;
-		buildUIFrame(tg);
+		this.tS = ts;
+		buildUIFrame(ts);
+		this.helpS = new UtilityFuncs();
+		this.fileHandle = new FileHandling();
 	}
 	
 	/**
@@ -40,27 +46,60 @@ public class TurtleUI {
 	 * @param tg TurtleGraphics Object to be used
 	 * @return JFrame Object to be displayed
 	 */
-	private JFrame buildUIFrame(TurtleGraphics tg)
+	private JFrame buildUIFrame(TurtleSystem tS)
 	{
 		JMenuBar mb = buildMenuBar();
-        JFrame mainFrame = new JFrame();//create a frame to display the turtle panel on
-        mainFrame.setLayout(new FlowLayout());//Stickies Graphics frame and centers nicely.
-        mainFrame.add(tg); //Add turtle graphics object to be rendered
-        mainFrame.pack();//set the frame to a size we can see
         mainFrame.setVisible(true);//now display it
         mainFrame.setJMenuBar(mb);//Set the menu bar
+        mainFrame.add(tS); //Add turtle graphics object to be rendered
+        mainFrame.pack();//set the frame to a size we can see
+        mainFrame.setTitle("TurtleGraphics");
         
         //Allows resizeable nature of graphics container on screen.
         mainFrame.addComponentListener(new ComponentAdapter() {
         	public void componentResized(ComponentEvent ev) {
         		int height = mainFrame.getHeight();
         		int width = mainFrame.getWidth();
-        		tG.setPanelSize(width, height);
+        		tS.setPanelSize(width, height);
+        		tS.displayMessage("h: " + height + "w: "+ width);
         	}
+        });
+        
+        //Checks if window is minimized or maximized and resizes
+        mainFrame.addWindowStateListener(new WindowStateListener() {
+        	public void frame__windowStateChanged(WindowEvent e){
+     		   // minimized
+     		   if ((e.getNewState() & Frame.ICONIFIED) == Frame.ICONIFIED){
+     			   int height = mainFrame.getHeight();
+     			   int width = mainFrame.getWidth();
+     			   tS.setPanelSize(width, height);
+     		   }
+     		   // maximized
+     		   else if ((e.getNewState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH){
+     			   int height = mainFrame.getHeight();
+     			   int width = mainFrame.getWidth();
+     			   tS.setPanelSize(width, height);
+     		   }
+     		}
+        	
+			@Override
+			public void windowStateChanged(WindowEvent e) {
+				// TODO Auto-generated method stub
+				frame__windowStateChanged(e);
+			}
+        });
+        
+        mainFrame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+	            Frame frame = (Frame) e.getSource();
+	            System.out.println("Closing = "+frame.getTitle());
+			}
         });
         
         return mainFrame;
 	}
+	
+	
 	
 	/**
 	 * Implements a MenuBar into the GUI.
@@ -85,11 +124,46 @@ public class TurtleUI {
 	 */
 	private JMenu generateFileMenu() {
 		JMenu fileMenu = new JMenu("File");
-		JMenuItem fileNew = new JMenuItem("New");
+		JMenuItem fileNew = new JMenuItem(new AbstractAction("New") {
+
+			/**
+			 * Generate Serial Version ID
+			 */
+			private static final long serialVersionUID = 4169888162340719052L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				helpS.saveConfirmation(tS);
+			}
+		});
 		fileNew.setToolTipText("Opens a new canvas");
-		JMenuItem fileOpen = new JMenuItem("Open");
+		
+		JMenuItem fileOpen = new JMenuItem(new AbstractAction("Load") {
+			/**
+			 * Generate Serial Version ID
+			 */
+			private static final long serialVersionUID = 4169888162340719052L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fileHandle.loadImage(tS);
+			}
+			
+		});
 		fileOpen.setToolTipText("Open a Saved canvas");
-		JMenuItem fileSave = new JMenuItem("Save");
+		
+		JMenuItem fileSave = new JMenuItem(new AbstractAction("Save") {
+			/**
+			 * Generate Serial Version ID
+			 */
+			private static final long serialVersionUID = 4169888162340719052L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fileHandle.saveImage(tS);
+			}
+			
+		});
 		fileSave.setToolTipText("Save current canvas");
 
 		fileMenu.add(fileNew);
@@ -128,7 +202,7 @@ public class TurtleUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tG.clear();
+				tS.clear();
 			}
 		});
 		JMenuItem resetTurtle = new JMenuItem(new AbstractAction("Reset") {
@@ -139,7 +213,7 @@ public class TurtleUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tG.reset();
+				tS.reset();
 			}
 			
 		});
@@ -153,8 +227,8 @@ public class TurtleUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//Get first number out of string
-				int speed = helpS.parseIntOrNull(JOptionPane.showInputDialog("Please enter a number ").split("\\d+")[0]);
-				tG.setTurtleSpeed(speed);
+				int speed = Integer.parseInt(JOptionPane.showInputDialog("Please enter a number "));
+				tS.setTurtleSpeed(speed);
 			}
 		});
 		setSpeed.setToolTipText("Set the speed of the turtle");
@@ -192,7 +266,7 @@ public class TurtleUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tG.about();
+				tS.about();
 			}
 		});
 		cmdAbout.setToolTipText("Runs the About Animation");
@@ -204,8 +278,8 @@ public class TurtleUI {
 			private static final long serialVersionUID = 4169888162340719052L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String radius = JOptionPane.showInputDialog("Please enter a radius");
-				tG.circle(10);
+				int radius = Integer.parseInt(JOptionPane.showInputDialog("Please enter a radius"));
+				tS.circle(radius);
 			}
 		});
 		cmdCircle.setToolTipText("Runs the Circle Animation");

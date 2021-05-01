@@ -1,12 +1,13 @@
 package helperFunctions;
 
-import java.lang.reflect.Method;
+import java.awt.Graphics;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import turtleExt.TurtleSystem;
+import turtleExt.TurtleUI;
 
 /**
  * Utility Library for useful Functions
@@ -16,23 +17,25 @@ import turtleExt.TurtleSystem;
  */
 public class UtilityFuncs {
 	/**
-	 * Checks whether a specified string can be parsed as an integer
-	 * 
-	 * @param value to check - String
-	 * @return Int or null if not a number
+	 * Looks at array of strings and returns an int or the initial string
+	 * @param commands - ArrayList<String>
+	 * @return ArrayList<Object> - Array of objects (String or Int)
 	 */
-	public Integer parseIntOrNull(String value) {
-		Scanner s = new Scanner(value);
-		
-		if(s.hasNextInt()) {
-			return s.nextInt();
-		} else {
-			return 0;
+	public ArrayList<Object> formatInput(ArrayList<String> commands) {
+		ArrayList<Object> o = new ArrayList<Object>();
+		for(String s : commands) {
+			try {
+				o.add(Integer.parseInt(s));
+			} catch (Exception e) {
+				o.add(s);
+			}
 		}
+		return o;
 	}
-
+	
 	/**
 	 * checks if integer is within RGB range
+	 * 
 	 * @param num
 	 * @return boolean
 	 */
@@ -43,20 +46,37 @@ public class UtilityFuncs {
 			return false;
 		}
 	}
-
-	public void executeFunction(Method m, TurtleSystem ts) {
-		try {
-			m.invoke(ts, null);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(ts, e.getMessage());
+	
+	/**
+	 * Validates the parameters to make sure they are Postive and within the frames boundaries.
+	 * @param parameters - ArrayList<Object> The parameters to be checked
+	 * @param ui - TurtleUI - The UI elements associated
+	 * @return
+	 */
+	public boolean verifyNumbers(ArrayList<Object> parameters, TurtleUI ui) {
+		for(Object o : parameters) {
+			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+				if((int)o >= 0 && ((int)o <= 
+						(ui.mainFrame.getHeight() > ui.mainFrame.getWidth() ? 
+								ui.mainFrame.getHeight(): ui.mainFrame.getWidth()))) {
+					return true;
+				} else {
+					return false;
+				}
+			}
 		}
+		return false;
 	}
-
-	public void executeFunction(Method m, TurtleSystem ts, int num) {
-		try {
-			m.invoke(ts, num);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(ts, e.getMessage());
+	
+	/**
+	 * Displays JOptionPane to user about unsaved items
+	 * @param tS - TurtleSystem Object
+	 */
+	public void saveConfirmation(TurtleSystem tS) {
+		int action = JOptionPane.showConfirmDialog(null, "The Current image is not saved. " 
+				+ "Do you want to continue?", "Unsaved Image", JOptionPane.YES_NO_OPTION);
+		if(action == JOptionPane.YES_OPTION) {
+			tS.clear();
 		}
 	}
 }

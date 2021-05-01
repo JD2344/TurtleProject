@@ -9,6 +9,5 @@ public class MainClass {
 	public static void main(String[] args) {
 		//Get a turtle instance
 		TurtleSystem turtle = TurtleSystem.getTurtle();
-		turtle.circle(50);
 	}
 }
