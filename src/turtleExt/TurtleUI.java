@@ -61,7 +61,6 @@ public class TurtleUI {
         		int height = mainFrame.getHeight();
         		int width = mainFrame.getWidth();
         		tS.setPanelSize(width, height);
-        		tS.displayMessage("h: " + height + "w: "+ width);
         	}
         });
         
@@ -125,7 +124,6 @@ public class TurtleUI {
 	private JMenu generateFileMenu() {
 		JMenu fileMenu = new JMenu("File");
 		JMenuItem fileNew = new JMenuItem(new AbstractAction("New") {
-
 			/**
 			 * Generate Serial Version ID
 			 */

@@ -49,12 +49,12 @@ public class TurtleSystem extends TurtleGraphics {
 	 * TurtleSystem Object
 	 */
 	private static TurtleSystem ts = new TurtleSystem();
-	
+
 	/**
 	 * Create UI object
 	 */
 	private TurtleUI ui;
-	
+
 	/**
 	 * Default constructor Build UI and other required elements
 	 */
@@ -84,18 +84,10 @@ public class TurtleSystem extends TurtleGraphics {
 		commands.remove(methodCall);
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		parameters = utility.formatInput(commands);
-		
-		ArrayList<Method> mA = this.getMatchedMethod(methods, methodCall);
-		if(mA.size() != 0) {
-			if(isValidParamRange(methodCall, parameters))
-			{
-				// INFO: Maybe utilise TG.displayMessage() Displays in label
-				// TODO: Check for parameters... Then call respective method.
-				// Make Sure that digit provided takes into max BOUND of degrees (e.g. 360)
-				// Disregard for distance if it toggles a distance...
-				// MUST REPORT invalid commands
-				// CORRECTLY BIND PARAMETERS (Minus values not acceptable). Report errors
 
+		ArrayList<Method> mA = this.getMatchedMethod(methods, methodCall);
+		if (mA.size() != 0) {
+			if (isValidParamRange(methodCall, parameters)) {
 				if (mA.size() > 1) {
 					for (Method m : mA) {
 						int paramSize = m.getParameterCount();
@@ -124,8 +116,8 @@ public class TurtleSystem extends TurtleGraphics {
 					} else {
 						this.invokeMethod(0, new ArrayList<Object>(), m);
 					}
-				} 
-			}	
+				}
+			}
 		} else {
 			JOptionPane.showMessageDialog(ts,
 					"The command: " + command + " is not valid. " + "Please enter a working command");
@@ -234,8 +226,8 @@ public class TurtleSystem extends TurtleGraphics {
 		boolean inRange = false;
 		for (Object o : parameters) {
 			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
-				inRange = utility.numberinRGBRange((int)o);
-				if(!inRange) {
+				inRange = utility.numberinRGBRange((int) o);
+				if (!inRange) {
 					return inRange;
 				}
 			}
@@ -244,24 +236,48 @@ public class TurtleSystem extends TurtleGraphics {
 	}
 	
 	/**
+	 * Checks whether a given number is within an angle range of 0 - 360
+	 * @param parameters - The parameters to check
+	 * @return true if in range
+	 */
+	private boolean withinAngleRange(ArrayList<Object> parameters) {
+		for(Object o : parameters) {
+			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+				if((int)o >= 0 && (int)o <= 360) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Checks a call has a valid number range.
+	 * 
 	 * @param methodCall - String name of the method to be called
 	 * @param parameters - ArrayList<Object> The parameters provided
 	 * @return
 	 */
 	private boolean isValidParamRange(String methodCall, ArrayList<Object> parameters) {
-		if(parameters.size() >= 1) {
-			if (methodCall.equals("customcolour")) {
-				if (!verifyRGBRange(parameters)) {
-					JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)");
-					return false;
-				}
-			} else {
-				if(!utility.verifyNumbers(parameters, this.ui)) {
-					JOptionPane.showMessageDialog(ts, "The parameter entered is either" +
-							"not in range or is not a valid number");
-					return false;
-				}
+		if (parameters.size() >= 1) {
+			switch (methodCall) {
+				case "customcolour":
+					if (!verifyRGBRange(parameters)) {
+						JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)");
+						return false;
+					}
+				case "turnleft":
+				case "turnright":
+					if(!withinAngleRange(parameters)) {
+						JOptionPane.showMessageDialog(ts, "One or more numbers not in angle range (0-360)");
+						return false;
+					}
+				default:
+					if (!utility.verifyNumbers(parameters, this.ui)) {
+						JOptionPane.showMessageDialog(ts,
+								"The parameter entered is either" + "not in range or is not a valid number");
+						return false;
+					}
 			}
 		}
 		return true;
@@ -315,7 +331,6 @@ public class TurtleSystem extends TurtleGraphics {
 		// Add all methods from TurtleSystem/ TurtleGraphics to method array list
 		for (Method m : ms) {
 			if (m.getName().toLowerCase().equals(command)) {
-
 				returnMethods.add(m);
 			}
 		}
@@ -337,11 +352,10 @@ public class TurtleSystem extends TurtleGraphics {
 			for (Parameter parameter : ps) {
 				String isWrapped = toWrapper(parameter.getType()).getName();
 				for (Object command : commands) {
-					if (isWrapped == command.getClass().getTypeName()) {
+					if (isWrapped == command.getClass().getTypeName()) 
 						return true;
-					} else {
+					 else 
 						return false;
-					}
 				}
 			}
 		} else {
