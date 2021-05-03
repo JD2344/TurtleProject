@@ -112,7 +112,7 @@ public class TurtleSystem extends TurtleGraphics {
 					if (paramSize >= 1) {
 						if (checkParametersMatchCommand(m.getParameters(), parameters)) {
 							this.invokeMethod(paramSize, parameters, m);
-						}
+						} 
 					} else {
 						this.invokeMethod(0, new ArrayList<Object>(), m);
 					}
@@ -128,7 +128,6 @@ public class TurtleSystem extends TurtleGraphics {
 	 * TODO: Implement something... Overrides the current Turtle Graphic about
 	 * method
 	 */
-
 	@Override
 	public void about() {
 		this.penDown();
@@ -230,6 +229,8 @@ public class TurtleSystem extends TurtleGraphics {
 				if (!inRange) {
 					return inRange;
 				}
+			} else {
+				return false;
 			}
 		}
 		return inRange;
@@ -241,14 +242,17 @@ public class TurtleSystem extends TurtleGraphics {
 	 * @return true if in range
 	 */
 	private boolean withinAngleRange(ArrayList<Object> parameters) {
+		boolean inRange = false;
 		for(Object o : parameters) {
 			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
 				if((int)o >= 0 && (int)o <= 360) {
-					return true;
+					inRange = true;
 				}
+			} else {
+				return false;
 			}
 		}
-		return false;
+		return inRange;
 	}
 
 	/**
@@ -346,22 +350,20 @@ public class TurtleSystem extends TurtleGraphics {
 	 * @return true if parameters match, else false
 	 */
 	private boolean checkParametersMatchCommand(Parameter[] ps, ArrayList<Object> commands) {
+		boolean doMatch = false;
 		// if method has parameters
 		if (ps.length >= 1) {
 			// Check each parameters types in comparison to commands given
 			for (Parameter parameter : ps) {
-				String isWrapped = toWrapper(parameter.getType()).getName();
+				String wrappedClass = toWrapper(parameter.getType()).getName();
 				for (Object command : commands) {
-					if (isWrapped == command.getClass().getTypeName()) 
-						return true;
-					 else 
-						return false;
+					doMatch =  wrappedClass == command.getClass().getTypeName();
 				}
 			}
 		} else {
-			return true; // Return true if no parameters are in method
+			doMatch = true; // Return true if no parameters are in method
 		}
-		return false;
+		return doMatch;
 	}
 
 	/**

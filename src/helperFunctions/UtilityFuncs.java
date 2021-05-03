@@ -22,9 +22,9 @@ public class UtilityFuncs {
 	public ArrayList<Object> formatInput(ArrayList<String> commands) {
 		ArrayList<Object> o = new ArrayList<Object>();
 		for(String s : commands) {
-			try {
-				o.add(Integer.parseInt(s));
-			} catch (Exception e) {
+			if(s.matches("\\d+")) {
+				o.add(Integer.valueOf(s));
+			} else {
 				o.add(s);
 			}
 		}
