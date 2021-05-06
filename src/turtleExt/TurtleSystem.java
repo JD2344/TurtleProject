@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import java.lang.reflect.*;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 /**
  * Implements TurtleGraphics and renders Turtle Objects and Sprite.
@@ -62,6 +63,7 @@ public class TurtleSystem extends TurtleGraphics {
 		gc = this.getGraphicsContext();
 		ui = new TurtleUI(this);
 		methods = buildMethodList();
+		this.reset();
 	}
 
 	/**
@@ -112,7 +114,7 @@ public class TurtleSystem extends TurtleGraphics {
 					if (paramSize >= 1) {
 						if (checkParametersMatchCommand(m.getParameters(), parameters)) {
 							this.invokeMethod(paramSize, parameters, m);
-						} 
+						}
 					} else {
 						this.invokeMethod(0, new ArrayList<Object>(), m);
 					}
@@ -120,7 +122,7 @@ public class TurtleSystem extends TurtleGraphics {
 			}
 		} else {
 			JOptionPane.showMessageDialog(ts,
-					"The command: " + command + " is not valid. " + "Please enter a working command");
+					"The command: \"" + command + "\" is not valid. " + "Please enter a working command");
 		}
 	}
 
@@ -130,10 +132,43 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	@Override
 	public void about() {
+		int radius = 50;
+		int xc = this.getxPos();
+		int yc = this.getyPos();
+		int x = 0, y = radius, d = 3 - (2 * radius);
 		this.penDown();
-		this.forward(100);
-		this.turnLeft();
-		this.forward(100);
+		
+		//Circle algo followed: https://www.javatpoint.com/computer-graphics-bresenhams-circle-algorithm
+		EightWaySymmetricPlot(xc, yc, x, y);
+		while (x <= y) {
+			if (d <= 0) {
+				d = d + (4 * x) + 200;
+			} else {
+				d = d + (4 * x) - (4 * y) + 100;
+				y = y - 1;
+			}
+			x = x + 1;
+			EightWaySymmetricPlot(xc, yc, x, y);
+		}
+		this.penUp();
+	}
+
+	private void EightWaySymmetricPlot(int xc, int yc, int x, int y) {
+		putpixel(x + xc, y + yc);
+		putpixel(x + xc, -y + yc);
+		putpixel(-x + xc, -y + yc);
+		putpixel(-x + xc, y + yc);
+		putpixel(y + xc, x + yc);
+		putpixel(y + xc, -x + yc);
+		putpixel(-y + xc, -x + yc);
+		putpixel(-y + xc, x + yc);
+	}
+
+	private void putpixel(int i, int j) {
+		// TODO Auto-generated method stub
+		this.setxPos(i);
+		this.setyPos(j);
+		this.forward(1);
 	}
 
 	/**
@@ -216,6 +251,17 @@ public class TurtleSystem extends TurtleGraphics {
 	}
 
 	/**
+	 * Resets the canvas and sets turtle position to the center of the screen
+	 */
+	@Override
+	public void reset() {
+		this.setxPos(this.getWidth() / 2);
+		this.setyPos(this.getHeight() / 2);
+		this.clear();
+		this.direction = 90;
+	}
+
+	/**
 	 * Verifies whether given input is within RGB colour range
 	 * 
 	 * @param parameters
@@ -235,17 +281,18 @@ public class TurtleSystem extends TurtleGraphics {
 		}
 		return inRange;
 	}
-	
+
 	/**
 	 * Checks whether a given number is within an angle range of 0 - 360
+	 * 
 	 * @param parameters - The parameters to check
 	 * @return true if in range
 	 */
 	private boolean withinAngleRange(ArrayList<Object> parameters) {
 		boolean inRange = false;
-		for(Object o : parameters) {
+		for (Object o : parameters) {
 			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
-				if((int)o >= 0 && (int)o <= 360) {
+				if ((int) o >= 0 && (int) o <= 360) {
 					inRange = true;
 				}
 			} else {
@@ -265,23 +312,23 @@ public class TurtleSystem extends TurtleGraphics {
 	private boolean isValidParamRange(String methodCall, ArrayList<Object> parameters) {
 		if (parameters.size() >= 1) {
 			switch (methodCall) {
-				case "customcolour":
-					if (!verifyRGBRange(parameters)) {
-						JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)");
-						return false;
-					}
-				case "turnleft":
-				case "turnright":
-					if(!withinAngleRange(parameters)) {
-						JOptionPane.showMessageDialog(ts, "One or more numbers not in angle range (0-360)");
-						return false;
-					}
-				default:
-					if (!utility.verifyNumbers(parameters, this.ui)) {
-						JOptionPane.showMessageDialog(ts,
-								"The parameter entered is either" + "not in range or is not a valid number");
-						return false;
-					}
+			case "customcolour":
+				if (!verifyRGBRange(parameters)) {
+					JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)");
+					return false;
+				}
+			case "turnleft":
+			case "turnright":
+				if (!withinAngleRange(parameters)) {
+					JOptionPane.showMessageDialog(ts, "One or more numbers not in angle range (0-360)");
+					return false;
+				}
+			default:
+				if (!utility.verifyNumbers(parameters, this.ui)) {
+					JOptionPane.showMessageDialog(ts, "The parameter entered is Invalid. "
+							+ "Make sure the number is between the canvas height and width");
+					return false;
+				}
 			}
 		}
 		return true;
@@ -312,11 +359,9 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	private ArrayList<Method> buildMethodList() {
 		ArrayList<Method> ml = new ArrayList<Method>();
-		Method[] tsm = this.getClass().getMethods();
+		Method[] tsm = this.getClass().getMethods(); // Returns all methods within this and child classes
 
 		for (Method m : tsm) {
-			// System.out.println(m.getName() + " declarer: " +
-			// m.getDeclaringClass().getSimpleName());
 			ml.add(m);
 		}
 		return ml;
@@ -357,7 +402,7 @@ public class TurtleSystem extends TurtleGraphics {
 			for (Parameter parameter : ps) {
 				String wrappedClass = toWrapper(parameter.getType()).getName();
 				for (Object command : commands) {
-					doMatch =  wrappedClass == command.getClass().getTypeName();
+					doMatch = wrappedClass == command.getClass().getTypeName();
 				}
 			}
 		} else {

@@ -1,5 +1,6 @@
 package turtleExt;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -10,11 +11,15 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 
 import javax.swing.AbstractAction;
+import javax.swing.Box;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import helperFunctions.UtilityFuncs;
 
@@ -66,6 +71,10 @@ public class TurtleUI {
         
         //Checks if window is minimized or maximized and resizes
         mainFrame.addWindowStateListener(new WindowStateListener() {
+        	/**
+        	 * Gets the state of the window
+        	 * @param e - WindowEvent - The current event
+        	 */
         	public void frame__windowStateChanged(WindowEvent e){
      		   // minimized
      		   if ((e.getNewState() & Frame.ICONIFIED) == Frame.ICONIFIED){
@@ -81,6 +90,9 @@ public class TurtleUI {
      		   }
      		}
         	
+        	/**
+        	 * Checks the state of the window to verify if maximised/minimised
+        	 */
 			@Override
 			public void windowStateChanged(WindowEvent e) {
 				// TODO Auto-generated method stub
@@ -230,15 +242,42 @@ public class TurtleUI {
 			}
 		});
 		setSpeed.setToolTipText("Set the speed of the turtle");
+		
+		JTextField redField = new JTextField(5);
+	    JTextField greenField = new JTextField(5);
+	    JTextField blueField = new JTextField(5);
+		JPanel rgbPanel = new JPanel();
+	      rgbPanel.add(new JLabel("Red Value (0 - 255):"));
+	      rgbPanel.add(redField);
+	      rgbPanel.add(Box.createHorizontalStrut(15)); // a spacer
+	      rgbPanel.add(new JLabel("Green Value (0 - 255):"));
+	      rgbPanel.add(greenField);
+	      rgbPanel.add(Box.createHorizontalStrut(15)); // a spacer
+	      rgbPanel.add(new JLabel("Blue Value (0 - 255):"));
+	      rgbPanel.add(blueField);
 		JMenuItem setPenColour = new JMenuItem(new AbstractAction("Set Pen Colour") {
 			/**
 			 * Generated Serial Version ID
 			 */
 			private static final long serialVersionUID = -1655760731657191013L;
-
+			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+				int result = JOptionPane.showConfirmDialog(tS, rgbPanel, "Set RGB Values", JOptionPane.YES_NO_OPTION);
+				if(redField.getText() != null || greenField.getText() != null || blueField.getText() != null ) {
+					if(helpS.numberinRGBRange(Integer.valueOf(redField.getText())) && 
+					   helpS.numberinRGBRange(Integer.valueOf(blueField.getText())) &&
+					   helpS.numberinRGBRange(Integer.valueOf(greenField.getText()))) {
+						if(result == JOptionPane.YES_OPTION) {
+							tS.setPenColour(new Color(Integer.valueOf(redField.getText()), 
+									Integer.valueOf(greenField.getText()), 
+									Integer.valueOf(blueField.getText())));
+							redField.setText("0");
+							greenField.setText("0");
+							blueField.setText("0");
+						}						
+					}
+				}
 			}
 		});
 		setPenColour.setToolTipText("Set a custom pen Colour");

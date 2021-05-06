@@ -13,18 +13,18 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  */
 public class FileHandling {
-	
 	private File output;
+	private FileNameExtensionFilter imageFilter = new FileNameExtensionFilter(
+			"Image Files (*.jpg, *.png, *.gif, *.jpeg)", 
+			"jpg", "png", "gif", "jpeg");
+	
 	/**
 	 * Saves the current Turtle Graphic
 	 * @param ts - TurtleSystem Object
 	 */
 	public void saveImage(TurtleSystem ts) {
 		final JFileChooser fc = new JFileChooser();
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"Image Files (*.jpg, *.png, *.gif, *.jpeg)", 
-				"jpg", "png", "gif", "jpeg");
-		fc.setFileFilter(filter);
+		fc.setFileFilter(imageFilter);
 		int returnVal = fc.showSaveDialog(ts);
 		
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -44,6 +44,7 @@ public class FileHandling {
 	 */
 	public void loadImage(TurtleSystem ts) {
 		final JFileChooser fc = new JFileChooser();
+		fc.setFileFilter(imageFilter);
 		int returnVal = fc.showOpenDialog(fc);
 		
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
