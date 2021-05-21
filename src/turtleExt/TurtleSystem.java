@@ -37,6 +37,8 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	protected UtilityFuncs utility;
 	
+	private TurtleUI tui;
+	
 	/**
 	 * Default constructor Build UI and other required elements
 	 */
@@ -44,6 +46,7 @@ public class TurtleSystem extends TurtleGraphics {
 		methods = buildMethodList();
 		this.utility = new UtilityFuncs();
 		System.out.println(this.isOpaque());
+		tui = new TurtleUI(this);
 		this.reset();
 	}
 
@@ -253,7 +256,7 @@ public class TurtleSystem extends TurtleGraphics {
 				}
 			case "forward":
 			case "backward":
-				if (!utility.numberinGraphicsFrame(parameters, ui)) {
+				if (!utility.numberinGraphicsFrame(parameters, tui)) {
 					JOptionPane
 							.showMessageDialog(
 									ts, "Make sure the number is between the canvas height and width ( "

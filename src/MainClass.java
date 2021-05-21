@@ -21,8 +21,5 @@ public class MainClass {
 	public static void main(String[] args) {
 		//Get a turtle instance and pass utility reference
 		TurtleSystem turtle = TurtleSystem.getTurtle();
-		fileHandle = new FileHandling();
-		ui = new TurtleUI(turtle, fileHandle);
-		
 	}
 }

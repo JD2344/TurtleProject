@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -20,7 +21,11 @@ public class FileHandling {
 			"Image Files (*.jpg, *.png, *.gif, *.jpeg)", 
 			"jpg", "png", "gif", "jpeg");
 	private TurtleSystem tS;
+	private JFrame mainFrame;
 	
+	public FileHandling(JFrame ui) {
+		mainFrame = ui;
+	}
 	/**
 	 * Saves the current Turtle Graphic
 	 * @param ts - TurtleSystem Object
@@ -41,7 +46,7 @@ public class FileHandling {
 					boolean hasWriter = ImageIO.write(bi, o.get(), output);
 					
 					if(hasWriter) {
-						tS.ui.mainFrame.setTitle("TurtleGraphics - " + fileName);
+						mainFrame.setTitle("TurtleGraphics - " + fileName);
 					}
 				}
 			} catch (Exception e){
@@ -64,7 +69,7 @@ public class FileHandling {
 				output = fc.getSelectedFile();
 				BufferedImage bi = ImageIO.read(output);
 				tS.setBufferedImage(bi);
-				tS.ui.mainFrame.setTitle("TurtleGraphics - " + output.getName());
+				mainFrame.setTitle("TurtleGraphics - " + output.getName());
 			} catch (Exception e){
 				JOptionPane.showMessageDialog(fc, e.getMessage());
 			}

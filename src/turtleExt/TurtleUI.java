@@ -37,13 +37,13 @@ public class TurtleUI {
 	 * Handles the GUI for the Main program
 	 * @param tg TurtleGraphics Object to passed
 	 */
-	public TurtleUI(TurtleSystem ts, FileHandling fh)
+	public TurtleUI(TurtleSystem ts)
 	{
 		mainFrame = new JFrame();//create a frame to display the turtle panel on;
 		tS = ts;
-		fileHandle = fh;
 		buildUIFrame(ts);
 		helpS = ts.utility;
+		fileHandle = new FileHandling(mainFrame);
 	}
 	
 	/**
