@@ -43,7 +43,7 @@ public class TurtleUI {
 		tS = ts;
 		buildUIFrame(ts);
 		helpS = ts.utility;
-		fileHandle = new FileHandling(mainFrame);
+		fileHandle = new FileHandling(mainFrame, ts);
 	}
 	
 	/**

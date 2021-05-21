@@ -23,8 +23,9 @@ public class FileHandling {
 	private TurtleSystem tS;
 	private JFrame mainFrame;
 	
-	public FileHandling(JFrame ui) {
+	public FileHandling(JFrame ui, TurtleSystem ts) {
 		mainFrame = ui;
+		tS = ts;
 	}
 	/**
 	 * Saves the current Turtle Graphic
