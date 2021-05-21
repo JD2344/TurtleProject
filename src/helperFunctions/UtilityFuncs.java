@@ -19,7 +19,7 @@ public class UtilityFuncs {
 	 * @param commands - ArrayList<String>
 	 * @return ArrayList<Object> - Array of objects (String or Int)
 	 */
-	public ArrayList<Object> formatInput(ArrayList<String> commands) {
+	public ArrayList<Object> getValidParameterType(ArrayList<String> commands) {
 		ArrayList<Object> o = new ArrayList<Object>();
 		for(String s : commands) {
 			if(s.matches("\\d+")) {
@@ -51,9 +51,10 @@ public class UtilityFuncs {
 	 * @param ui - TurtleUI - The UI elements associated
 	 * @return
 	 */
-	public boolean verifyNumbers(ArrayList<Object> parameters, TurtleUI ui) {
+	public boolean numberinGraphicsFrame(ArrayList<Object> parameters, TurtleUI ui) {
 		for(Object o : parameters) {
 			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+				//If parameter is an integer and between the frame boundaries
 				if((int)o >= 0 && ((int)o <= 
 						(ui.mainFrame.getHeight() > ui.mainFrame.getWidth() ? 
 								ui.mainFrame.getHeight(): ui.mainFrame.getWidth()))) {
@@ -67,11 +68,52 @@ public class UtilityFuncs {
 	}
 	
 	/**
+	 * Verifies whether given input is within RGB colour range
+	 * 
+	 * @param parameters
+	 * @return inRange - boolean
+	 */
+	public boolean verifyRGBRange(ArrayList<Object> parameters) {
+		boolean inRange = false;
+		for (Object o : parameters) {
+			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+				inRange = this.numberinRGBRange((int) o);
+				if (!inRange) {
+					return inRange;
+				}
+			} else {
+				return false;
+			}
+		}
+		return inRange;
+	}
+
+	/**
+	 * Checks whether a given number is within an angle range of 0 - 360
+	 * 
+	 * @param parameters - The parameters to check
+	 * @return true if in range
+	 */
+	public boolean withinAngleRange(ArrayList<Object> parameters) {
+		boolean inRange = false;
+		for (Object o : parameters) {
+			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+				if ((int) o >= 0 && (int) o <= 360) {
+					inRange = true;
+				}
+			} else {
+				return false;
+			}
+		}
+		return inRange;
+	}
+	
+	/**
 	 * Displays JOptionPane to user about unsaved items
 	 * @param tS - TurtleSystem Object
 	 */
 	public void saveConfirmation(TurtleSystem tS) {
-		int action = JOptionPane.showConfirmDialog(null, "The Current image is not saved. " 
+		int action = JOptionPane.showConfirmDialog(tS, "The Current image is not saved. " 
 				+ "Do you want to continue?", "Unsaved Image", JOptionPane.YES_NO_OPTION);
 		if(action == JOptionPane.YES_OPTION) {
 			tS.clear();

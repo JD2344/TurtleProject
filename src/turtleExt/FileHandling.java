@@ -1,6 +1,8 @@
 package turtleExt;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -17,21 +19,31 @@ public class FileHandling {
 	private FileNameExtensionFilter imageFilter = new FileNameExtensionFilter(
 			"Image Files (*.jpg, *.png, *.gif, *.jpeg)", 
 			"jpg", "png", "gif", "jpeg");
+	private TurtleSystem tS;
 	
 	/**
 	 * Saves the current Turtle Graphic
 	 * @param ts - TurtleSystem Object
 	 */
-	public void saveImage(TurtleSystem ts) {
+	protected void saveImage() {
 		final JFileChooser fc = new JFileChooser();
 		fc.setFileFilter(imageFilter);
-		int returnVal = fc.showSaveDialog(ts);
+		int returnVal = fc.showSaveDialog(tS);
 		
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			try {
 				output = fc.getSelectedFile();
-				BufferedImage bi = ts.getBufferedImage();
-				ImageIO.write(bi, "png", output);				
+				String fileName = output.getName();
+				String[] writerNames = ImageIO.getWriterFormatNames();
+				Optional<String> o = Arrays.stream(writerNames).filter(fileName::contains).findAny();
+				BufferedImage bi = tS.getBufferedImage();
+				if(!o.isEmpty()) {
+					boolean hasWriter = ImageIO.write(bi, o.get(), output);
+					
+					if(hasWriter) {
+						tS.ui.mainFrame.setTitle("TurtleGraphics - " + fileName);
+					}
+				}
 			} catch (Exception e){
 				JOptionPane.showMessageDialog(fc, e.getMessage());
 			}
@@ -42,7 +54,7 @@ public class FileHandling {
 	 * Loads a Turtle Graphic
 	 * @param TurtleSystem Object
 	 */
-	public void loadImage(TurtleSystem ts) {
+	protected void loadImage() {
 		final JFileChooser fc = new JFileChooser();
 		fc.setFileFilter(imageFilter);
 		int returnVal = fc.showOpenDialog(fc);
@@ -51,7 +63,8 @@ public class FileHandling {
 			try {
 				output = fc.getSelectedFile();
 				BufferedImage bi = ImageIO.read(output);
-				ts.setBufferedImage(bi);
+				tS.setBufferedImage(bi);
+				tS.ui.mainFrame.setTitle("TurtleGraphics - " + output.getName());
 			} catch (Exception e){
 				JOptionPane.showMessageDialog(fc, e.getMessage());
 			}

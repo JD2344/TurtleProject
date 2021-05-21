@@ -5,20 +5,11 @@ import helperFunctions.UtilityFuncs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 import java.lang.reflect.*;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Rectangle;
 
 /**
  * Implements TurtleGraphics and renders Turtle Objects and Sprite.
@@ -32,37 +23,27 @@ public class TurtleSystem extends TurtleGraphics {
 	private static final long serialVersionUID = -24842294727668755L;
 
 	/**
-	 * Graphics Context
-	 */
-	private Graphics gc;
-
-	/**
 	 * Methods within TurtleGraphics and TurtleSystem
 	 */
 	private ArrayList<Method> methods;
-
-	/*
-	 * Variety of useful functions
-	 */
-	private UtilityFuncs utility = new UtilityFuncs();
 
 	/**
 	 * TurtleSystem Object
 	 */
 	private static TurtleSystem ts = new TurtleSystem();
 
-	/**
-	 * Create UI object
+	/*
+	 * Variety of useful functions
 	 */
-	private TurtleUI ui;
-
+	protected UtilityFuncs utility;
+	
 	/**
 	 * Default constructor Build UI and other required elements
 	 */
 	private TurtleSystem() {
-		gc = this.getGraphicsContext();
-		ui = new TurtleUI(this);
 		methods = buildMethodList();
+		this.utility = new UtilityFuncs();
+		System.out.println(this.isOpaque());
 		this.reset();
 	}
 
@@ -74,10 +55,16 @@ public class TurtleSystem extends TurtleGraphics {
 	public static TurtleSystem getTurtle() {
 		return ts;
 	}
-
+	
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+	}
+	
 	/**
 	 * Overrides TurtleGraphics processCommand User input is handled to allow
 	 * calling of methods from TurtleCommands Package.
+	 * 
+	 * @param command - String - The command given
 	 */
 	@Override
 	public void processCommand(String command) {
@@ -85,44 +72,33 @@ public class TurtleSystem extends TurtleGraphics {
 		String methodCall = commands.get(0);
 		commands.remove(methodCall);
 		ArrayList<Object> parameters = new ArrayList<Object>();
-		parameters = utility.formatInput(commands);
+		parameters = utility.getValidParameterType(commands);
 
-		ArrayList<Method> mA = this.getMatchedMethod(methods, methodCall);
+		ArrayList<Method> mA = this.getMatchedMethod(methods, methodCall, parameters);
+
 		if (mA.size() != 0) {
-			if (isValidParamRange(methodCall, parameters)) {
-				if (mA.size() > 1) {
-					for (Method m : mA) {
-						int paramSize = m.getParameterCount();
-
-						if (parameters.size() > paramSize || parameters.size() < paramSize) {
-							continue;
-						} else {
-							// If all parameters dont match. skip method. else invoke
-							if (!checkParametersMatchCommand(m.getParameters(), parameters)) {
-								continue;
-							} else {
-								this.invokeMethod(paramSize, parameters, m);
-							}
-						}
-					}
-				} else if (mA.size() == 1) {
-					// Check if method has parameters. if none. invoke. Else check types and match
-					// with command
-					Method m = mA.get(0);
-					int paramSize = m.getParameterCount();
-
+			if (mA.size() == 1) {
+				// Check if method has parameters. if none. invoke. Else check types and match
+				// with command
+				Method m = mA.get(0);
+				int paramSize = m.getParameterCount();
+				if (paramSize == parameters.size()) {
 					if (paramSize >= 1) {
-						if (checkParametersMatchCommand(m.getParameters(), parameters)) {
+						if (isValidParamRange(methodCall, parameters)) {
 							this.invokeMethod(paramSize, parameters, m);
 						}
 					} else {
 						this.invokeMethod(0, new ArrayList<Object>(), m);
 					}
+				} else {
+					JOptionPane.showMessageDialog(ts, "Please enter the correct parameters or provide none",
+							"Invalid Parameter", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		} else {
 			JOptionPane.showMessageDialog(ts,
-					"The command: \"" + command + "\" is not valid. " + "Please enter a working command");
+					"The command: \"" + command + "\" is not valid. " + "Please enter a working command",
+					"Invalid Command", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -132,63 +108,54 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	@Override
 	public void about() {
-		int radius = 50;
-		int xc = this.getxPos();
-		int yc = this.getyPos();
-		int x = 0, y = radius, d = 3 - (2 * radius);
+		super.about();
+		/*
+		int x = this.getHeight() / 2;
+		int width = this.getWidth();
+		int start = 0;
+		this.setTurtleSpeed(10);
+		this.setyPos(x);
+
+		System.out.println(this.getyPos());
+		System.out.println(this.getxPos());
+		this.setxPos(0);
+		this.turnLeft(90);
 		this.penDown();
 		
-		//Circle algo followed: https://www.javatpoint.com/computer-graphics-bresenhams-circle-algorithm
-		EightWaySymmetricPlot(xc, yc, x, y);
-		while (x <= y) {
-			if (d <= 0) {
-				d = d + (4 * x) + 200;
-			} else {
-				d = d + (4 * x) - (4 * y) + 100;
-				y = y - 1;
-			}
-			x = x + 1;
-			EightWaySymmetricPlot(xc, yc, x, y);
+		while(start < width) {
+			this.forward(1);
+			System.out.println(this.getyPos());
+			super.repaint();
+			start++;
 		}
-		this.penUp();
-	}
-
-	private void EightWaySymmetricPlot(int xc, int yc, int x, int y) {
-		putpixel(x + xc, y + yc);
-		putpixel(x + xc, -y + yc);
-		putpixel(-x + xc, -y + yc);
-		putpixel(-x + xc, y + yc);
-		putpixel(y + xc, x + yc);
-		putpixel(y + xc, -x + yc);
-		putpixel(-y + xc, -x + yc);
-		putpixel(-y + xc, x + yc);
-	}
-
-	private void putpixel(int i, int j) {
-		// TODO Auto-generated method stub
-		this.setxPos(i);
-		this.setyPos(j);
-		this.forward(1);
+		this.penUp();*/
 	}
 
 	/**
 	 * Overrides the default TurtleGraphics Circle Behaviour
+	 * 
+	 * @param radius - Int - The radius of the circle
 	 */
 	@Override
 	public void circle(int radius) {
-		double angle = 0;
 		int initialX = this.getxPos(), xp = this.getxPos();
 		int initialY = this.getyPos(), yp = this.getyPos();
-
+		this.setTurtleSpeed(5);
+		
+		int angle = 0;
 		// Loop over 360 times and set the respective X/Y pos to correspond to cos and
 		// sine Trigonometry
 		this.penDown();
+		
 		while (angle <= 360) {
-			this.forward(1);
 			this.setxPos(Math.round(Math.round(radius * Math.cos(angle))) + initialX);
 			this.setyPos(Math.round(Math.round(radius * Math.sin(angle))) + initialY);
+			this.turnRight(Math.round(Math.round(radius * Math.tan(angle))));
+			this.forward(1);
+			
 			angle++;
 		}
+
 		this.penUp();
 		this.setxPos(xp);
 		this.setyPos(yp);
@@ -212,7 +179,7 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	public void backward(int distance) {
 		this.turnLeft(180);
-		this.forward(-distance);
+		this.forward(distance);
 	}
 
 	/**
@@ -262,47 +229,6 @@ public class TurtleSystem extends TurtleGraphics {
 	}
 
 	/**
-	 * Verifies whether given input is within RGB colour range
-	 * 
-	 * @param parameters
-	 * @return inRange - boolean
-	 */
-	public boolean verifyRGBRange(ArrayList<Object> parameters) {
-		boolean inRange = false;
-		for (Object o : parameters) {
-			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
-				inRange = utility.numberinRGBRange((int) o);
-				if (!inRange) {
-					return inRange;
-				}
-			} else {
-				return false;
-			}
-		}
-		return inRange;
-	}
-
-	/**
-	 * Checks whether a given number is within an angle range of 0 - 360
-	 * 
-	 * @param parameters - The parameters to check
-	 * @return true if in range
-	 */
-	private boolean withinAngleRange(ArrayList<Object> parameters) {
-		boolean inRange = false;
-		for (Object o : parameters) {
-			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
-				if ((int) o >= 0 && (int) o <= 360) {
-					inRange = true;
-				}
-			} else {
-				return false;
-			}
-		}
-		return inRange;
-	}
-
-	/**
 	 * Checks a call has a valid number range.
 	 * 
 	 * @param methodCall - String name of the method to be called
@@ -313,20 +239,26 @@ public class TurtleSystem extends TurtleGraphics {
 		if (parameters.size() >= 1) {
 			switch (methodCall) {
 			case "customcolour":
-				if (!verifyRGBRange(parameters)) {
-					JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)");
+				if (!utility.verifyRGBRange(parameters)) {
+					JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)", "Not in range",
+							JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
 			case "turnleft":
 			case "turnright":
-				if (!withinAngleRange(parameters)) {
-					JOptionPane.showMessageDialog(ts, "One or more numbers not in angle range (0-360)");
+				if (!utility.withinAngleRange(parameters)) {
+					JOptionPane.showMessageDialog(ts, "One or more numbers not in angle range (0-360)", "Not in range",
+							JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
-			default:
-				if (!utility.verifyNumbers(parameters, this.ui)) {
-					JOptionPane.showMessageDialog(ts, "The parameter entered is Invalid. "
-							+ "Make sure the number is between the canvas height and width");
+			case "forward":
+			case "backward":
+				if (!utility.numberinGraphicsFrame(parameters, ui)) {
+					JOptionPane
+							.showMessageDialog(
+									ts, "Make sure the number is between the canvas height and width ( "
+											+ this.getHeight() + " " + this.getWidth() + ")",
+									"Not in range", JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
 			}
@@ -374,13 +306,16 @@ public class TurtleSystem extends TurtleGraphics {
 	 * @param command - String command in lowercase
 	 * @return Method if found else null
 	 */
-	private ArrayList<Method> getMatchedMethod(ArrayList<Method> ms, String command) {
+	private ArrayList<Method> getMatchedMethod(ArrayList<Method> ms, String command, ArrayList<Object> commands) {
 		ArrayList<Method> returnMethods = new ArrayList<Method>();
 
 		// Add all methods from TurtleSystem/ TurtleGraphics to method array list
 		for (Method m : ms) {
 			if (m.getName().toLowerCase().equals(command)) {
-				returnMethods.add(m);
+				if (commands.size() == m.getParameterCount()
+						&& checkParametersMatchCommand(m.getParameters(), commands)) {
+					returnMethods.add(m);
+				}
 			}
 		}
 		return returnMethods;
@@ -403,6 +338,9 @@ public class TurtleSystem extends TurtleGraphics {
 				String wrappedClass = toWrapper(parameter.getType()).getName();
 				for (Object command : commands) {
 					doMatch = wrappedClass == command.getClass().getTypeName();
+					if (!doMatch) {
+						return doMatch;
+					}
 				}
 			}
 		} else {

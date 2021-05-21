@@ -1,14 +1,13 @@
 package turtleExt;
 
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
@@ -30,20 +29,21 @@ import helperFunctions.UtilityFuncs;
  */
 public class TurtleUI {
 	private TurtleSystem tS;
-	private UtilityFuncs helpS;
 	private FileHandling fileHandle;
-	public JFrame mainFrame = new JFrame();//create a frame to display the turtle panel on
+	private UtilityFuncs helpS;
+	public JFrame mainFrame;
 	
 	/**
 	 * Handles the GUI for the Main program
 	 * @param tg TurtleGraphics Object to passed
 	 */
-	public TurtleUI(TurtleSystem ts)
+	public TurtleUI(TurtleSystem ts, FileHandling fh)
 	{
-		this.tS = ts;
+		mainFrame = new JFrame();//create a frame to display the turtle panel on;
+		tS = ts;
+		fileHandle = fh;
 		buildUIFrame(ts);
-		this.helpS = new UtilityFuncs();
-		this.fileHandle = new FileHandling();
+		helpS = ts.utility;
 	}
 	
 	/**
@@ -54,11 +54,12 @@ public class TurtleUI {
 	private JFrame buildUIFrame(TurtleSystem tS)
 	{
 		JMenuBar mb = buildMenuBar();
-        mainFrame.setVisible(true);//now display it
         mainFrame.setJMenuBar(mb);//Set the menu bar
+        mainFrame.setTitle("TurtleGraphics - *Untitled");
         mainFrame.add(tS); //Add turtle graphics object to be rendered
         mainFrame.pack();//set the frame to a size we can see
-        mainFrame.setTitle("TurtleGraphics");
+        mainFrame.setVisible(true);//now display it
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         //Allows resizeable nature of graphics container on screen.
         mainFrame.addComponentListener(new ComponentAdapter() {
@@ -67,37 +68,6 @@ public class TurtleUI {
         		int width = mainFrame.getWidth();
         		tS.setPanelSize(width, height);
         	}
-        });
-        
-        //Checks if window is minimized or maximized and resizes
-        mainFrame.addWindowStateListener(new WindowStateListener() {
-        	/**
-        	 * Gets the state of the window
-        	 * @param e - WindowEvent - The current event
-        	 */
-        	public void frame__windowStateChanged(WindowEvent e){
-     		   // minimized
-     		   if ((e.getNewState() & Frame.ICONIFIED) == Frame.ICONIFIED){
-     			   int height = mainFrame.getHeight();
-     			   int width = mainFrame.getWidth();
-     			   tS.setPanelSize(width, height);
-     		   }
-     		   // maximized
-     		   else if ((e.getNewState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH){
-     			   int height = mainFrame.getHeight();
-     			   int width = mainFrame.getWidth();
-     			   tS.setPanelSize(width, height);
-     		   }
-     		}
-        	
-        	/**
-        	 * Checks the state of the window to verify if maximised/minimised
-        	 */
-			@Override
-			public void windowStateChanged(WindowEvent e) {
-				// TODO Auto-generated method stub
-				frame__windowStateChanged(e);
-			}
         });
         
         mainFrame.addWindowListener(new WindowAdapter() {
@@ -109,8 +79,6 @@ public class TurtleUI {
         
         return mainFrame;
 	}
-	
-	
 	
 	/**
 	 * Implements a MenuBar into the GUI.
@@ -156,7 +124,7 @@ public class TurtleUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				fileHandle.loadImage(tS);
+				fileHandle.loadImage();
 			}
 			
 		});
@@ -170,7 +138,7 @@ public class TurtleUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				fileHandle.saveImage(tS);
+				fileHandle.saveImage();
 			}
 			
 		});
@@ -188,8 +156,36 @@ public class TurtleUI {
 	 */
 	private JMenu generateExtraMenu() {
 		JMenu helpMenu = new JMenu("Help");
-		JMenuItem showInterface = new JMenuItem("Show Interface");
+		JMenuItem showInterface = new JMenuItem(new AbstractAction("Show Interface") {
+			/**
+			 * Generated Serial Version ID
+			 */
+			private static final long serialVersionUID = 410334401177661816L;
+			
+			/**
+			 * Shows/Hides the interface on screen
+			 */
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JPanel jp = tS;
+				Component[] guiComponents = jp.getComponents();
+				boolean visible = false;
+				
+				for(Component c : guiComponents) {
+					if(c.isVisible()) {
+						visible = true;
+					} else {
+						visible = false;
+						break;
+					}
+				}
+				
+				tS.setGUIVisible(!visible);
+			}
+			
+		});
 		showInterface.setToolTipText("Show/Hide the Interface");
+		
 		JMenuItem helpAbout = new JMenuItem("About");
 		helpAbout.setToolTipText("About this program");
 		
@@ -315,13 +311,26 @@ public class TurtleUI {
 			private static final long serialVersionUID = 4169888162340719052L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int radius = Integer.parseInt(JOptionPane.showInputDialog("Please enter a radius"));
-				tS.circle(radius);
+				String s = JOptionPane.showInputDialog(tS, "Please enter a radius");
+				if(s != null) {					
+					if(s.matches("\\d+")) {
+						int radius = Integer.parseInt(s);
+						tS.circle(radius);					
+					}
+				} 
 			}
 		});
 		cmdCircle.setToolTipText("Runs the Circle Animation");
 		commandMenu.add(cmdAbout);
 		commandMenu.add(cmdCircle);
 		return commandMenu;
+	}
+	
+	/**
+	 * Manipulates the UI that is already rendered within the TurtleSystem Object
+	 * and further allow implementation of on screen elements.
+	 */
+	private void manipulateCurrentTurtleUI()  {
+		
 	}
 }
