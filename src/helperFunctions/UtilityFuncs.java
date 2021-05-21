@@ -76,7 +76,7 @@ public class UtilityFuncs {
 	public boolean verifyRGBRange(ArrayList<Object> parameters) {
 		boolean inRange = false;
 		for (Object o : parameters) {
-			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+			if (o instanceof Integer) {
 				inRange = this.numberinRGBRange((int) o);
 				if (!inRange) {
 					return inRange;
@@ -97,7 +97,7 @@ public class UtilityFuncs {
 	public boolean withinAngleRange(ArrayList<Object> parameters) {
 		boolean inRange = false;
 		for (Object o : parameters) {
-			if (o.getClass().getTypeName() == Integer.class.getTypeName()) {
+			if (o instanceof Integer) {
 				if ((int) o >= 0 && (int) o <= 360) {
 					inRange = true;
 				}
