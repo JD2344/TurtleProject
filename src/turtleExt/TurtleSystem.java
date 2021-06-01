@@ -2,13 +2,11 @@ package turtleExt;
 
 import uk.ac.leedsbeckett.oop.TurtleGraphics;
 import helperFunctions.UtilityFuncs;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 import javax.swing.JOptionPane;
-
 import java.lang.reflect.*;
-import java.net.URL;
 import java.awt.Color;
 
 /**
@@ -37,6 +35,9 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	protected UtilityFuncs utility;
 
+	/**
+	 * The turtle UI
+	 */
 	protected TurtleUI tui;
 
 	/**
@@ -56,9 +57,10 @@ public class TurtleSystem extends TurtleGraphics {
 	public static TurtleSystem getTurtle() {
 		return ts;
 	}
-	
+
 	/**
 	 * Set the Turtle UI object
+	 * 
 	 * @param tui
 	 */
 	public void setTurtleUI(TurtleUI tui) {
@@ -95,45 +97,242 @@ public class TurtleSystem extends TurtleGraphics {
 					} else {
 						utility.invokeMethod(0, new ArrayList<Object>(), m, ts); // 0 Parameters
 					}
-				} else {
-					JOptionPane.showMessageDialog(ts, "Please enter the correct parameters or provide none",
-							"Invalid Parameter", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		} else {
 			JOptionPane.showMessageDialog(ts,
-					"The command: \"" + command + "\" is not valid. " + "Please enter a working command",
-					"Invalid Command", JOptionPane.ERROR_MESSAGE);
+					"The command: \"" + command + "\" is not valid, or " + "the Parameters were incorrect. ",
+					"Invalid Input", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	/**
-	 * TODO: Implement something... Overrides the current Turtle Graphic about
-	 * method
+	 * The about method.
 	 */
 	@Override
 	public void about() {
-		// super.about();
-		int radius = 50;
-		int xc = this.getxPos();
-		int yc = this.getyPos();
-		int x = 0, y = radius, delta = 3 - (2 * radius);
-		this.penDown();
-		this.setTurtleSpeed(0);
-		// Circle algo followed:
-		// https://www.javatpoint.com/computer-graphics-bresenhams-circle-algorithm
-		EightWaySymmetricPlot(xc, yc, x, y);
-		while (x <= y) {
-			if (delta <= 0) {
-				delta = delta + (4 * x) + 1;
-			} else {
-				delta = delta + (4 * x) - (4 * y) + 10;
-				y = y - 1;
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				superAbout();
+				sleepCustom(3);
+				ts.clear();
+				ts.getGraphicsContext().drawString("Lame... That had to go...", ts.getxPos() / 2 - 50, ts.getyPos());
+				sleepCustom(3);
+				ts.clear();
+				ts.getGraphicsContext().drawString("Watch this instead!", ts.getxPos() / 2 - 50, ts.getyPos());
+				sleepCustom(3);
+				ts.clear();
+				ts.displayMessage("TurtleGraphics V3.0");
+				ts.getGraphicsContext().drawString("Here is a bad circle...", ts.getxPos() / 2 - 50, ts.getyPos());
+				circle(100);
+				sleepCustom(3);
+				ts.clear();
+				ts.getGraphicsContext().drawString("Here are some better circles", ts.getxPos() / 2 - 50, ts.getyPos());
+				sleepCustom(3);
+				ts.clear();
+				makeBresenhams();
+				ts.clear();
+				hexagon();
+				ts.clear();
+				honeyCombe();
+				ts.clear();
+				lightsaber();
+				ts.getGraphicsContext().drawString("This was Turtle Graphics v3", ts.getxPos() / 2 - 50, ts.getyPos());
+				ts.setTurtleSpeed(0);
 			}
-			x = x + 1;
-			EightWaySymmetricPlot(xc, yc, x, y);
+		});
+		t.start();
+	}
+	
+	/**
+	 * Pause thread execution by a few seconds
+	 * @param tts - number in seconds
+	 */
+	private void sleepCustom(int tts) {
+		try {
+			Thread.sleep(tts * 1000);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(ts, e.getMessage());
 		}
-		this.penUp();
+	}
+	
+	/**
+	 * Run the original about method
+	 */
+	private void superAbout() {
+		this.setBackground(Color.BLACK);
+		super.about();
+	}
+
+	/**
+	 * Make a row of lightsabers Red, yellow, green, blue, cyan, orange
+	 */
+	public void lightsaber() {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				ts.getGraphicsContext().drawString("LIGHTSABERS", ts.getWidth() / 3, ts.getHeight() / 2 - 100);
+				ts.setxPos(ts.getWidth() / 6);
+				ts.setyPos(ts.getHeight() / 2 + 10);
+				ts.setTurtleSpeed(50);
+				
+				ts.penDown();
+				
+				for (int c = 0; c < 6; c++) {
+					ts.customColour(128, 128, 128);
+					turnLeft();
+					ts.forward(10);
+					ts.turnRight();
+					ts.forward(10);
+					ts.turnRight();
+					ts.forward(10);
+					ts.turnRight();
+					ts.forward(10);
+					ts.setPenColour(changeColour(c));
+					ts.forward(100);
+					ts.turnRight();
+					ts.forward(10);
+					ts.turnRight();
+					ts.forward(100);
+					ts.setyPos(ts.getyPos());
+					ts.customColour(128, 128, 128);
+					ts.forward(80);
+					ts.turnRight();
+					ts.forward(10);
+					ts.turnRight();
+					ts.forward(80);
+					ts.setyPos(ts.getyPos());
+					ts.turnLeft(180);
+					ts.setxPos(ts.getxPos() + 100);
+				}
+				ts.penUp();
+			}
+		});
+		t.start();
+	}
+
+	/**
+	 * Switches colour based on a number input
+	 * 
+	 * @param number
+	 * @return
+	 */
+	private Color changeColour(int number) {
+		switch (number) {
+		case 0:
+			return Color.RED;
+		case 1:
+			return Color.YELLOW;
+		case 2:
+			return Color.GREEN;
+		case 3:
+			return Color.BLUE;
+		case 4:
+			return Color.CYAN;
+		case 5:
+			return Color.ORANGE;
+		default:
+			return Color.RED;
+		}
+	}
+
+	/**
+	 * Make a honeycombe like animation
+	 */
+	public void honeyCombe() {
+		Random r = new Random();
+		ts.setTurtleSpeed(500);
+		ts.setxPos(this.getWidth() / 3);
+		ts.setyPos(this.getHeight() / 2);
+		ts.penDown();
+		for (int combes = 0; combes < 5; combes++) {
+			for (int sides = 0; sides < 8; sides++) {
+				customColour(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+				ts.turnLeft(45);
+				ts.forward(50);
+			}
+			ts.setxPos(this.getxPos() + 100);
+		}
+		ts.penUp();
+		red();
+		ts.reset();
+	}
+
+	/**
+	 * Makes a hexagon shape halfway in the canvas
+	 */
+	public void hexagon() {
+		ts.setTurtleSpeed(50);
+		ts.setxPos(ts.getWidth() / 2);
+		ts.setyPos(ts.getHeight() / 2 - 50);
+		ts.getGraphicsContext().drawString("Hexagon", ts.getWidth() / 4, ts.getHeight() / 2 - 60);
+		ts.penDown();
+		for (int sides = 0; sides < 6; sides++) {
+			ts.getGraphicsContext().drawString(String.valueOf(sides + 1), ts.getxPos(), ts.getyPos() - 5);
+			ts.forward(100);
+			ts.turnRight(60);
+		}
+		ts.penUp();
+		sleepCustom(2);
+	}
+
+	/**
+	 * Provides an animation of making 4 bresenhams circles
+	 */
+	public void makeBresenhams() {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				ts.setTurtleSpeed(5);
+				ts.setxPos(ts.getWidth() / 5);
+				ts.setyPos(ts.getHeight() / 2);
+				ts.getGraphicsContext().drawString("Bresenhams Circles", ts.getWidth() / 4, ts.getHeight() / 2 - 60);
+				int iX = ts.getxPos();
+				int iY = ts.getyPos();
+				ts.penDown();
+				for (int circles = 0; circles < 5; circles++) {
+					switch (circles) {
+					case 0:
+						ts.setPenColour(Color.BLUE);
+						break;
+					case 1:
+						ts.setPenColour(Color.YELLOW);
+						break;
+					case 2:
+						ts.setPenColour(Color.BLACK);
+						break;
+					case 3:
+						ts.setPenColour(Color.GREEN);
+						break;
+					case 4:
+						ts.setPenColour(Color.RED);
+						break;
+					}
+					int radius = 50;
+					int xc = iX += 100;
+					int yc = iY;
+					int x = 0, y = radius, delta = 3 - (2 * radius);
+					// Circle algo followed:
+					// https://www.javatpoint.com/computer-graphics-bresenhams-circle-algorithm
+					EightWaySymmetricPlot(xc, yc, x, y);
+					while (x <= y) {
+						if (delta <= 0) {
+							delta = delta + (4 * x) + 1;
+						} else {
+							delta = delta + (4 * x) - (4 * y) + 10;
+							y = y - 1;
+						}
+						x = x + 1;
+						EightWaySymmetricPlot(xc, yc, x, y);
+					}
+				}
+				ts.penUp();
+				ts.reset();
+				
+			}
+		});
+		t.start();
 	}
 
 	/**
@@ -165,7 +364,6 @@ public class TurtleSystem extends TurtleGraphics {
 		this.setxPos(x);
 		this.setyPos(y);
 		this.forward(1);
-		this.update(getGraphics());
 	}
 
 	/**
@@ -176,6 +374,7 @@ public class TurtleSystem extends TurtleGraphics {
 	@Override
 	public void circle(int radius) {
 		Thread t = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				int initialX = ts.getxPos(), xp = ts.getxPos();
 				int initialY = ts.getyPos(), yp = ts.getyPos();
@@ -190,7 +389,7 @@ public class TurtleSystem extends TurtleGraphics {
 					ts.setyPos(Math.round(Math.round(radius * Math.sin(angle))) + initialY);
 					ts.turnRight(Math.round(Math.round(radius * Math.tan(angle))));
 					ts.forward(1);
-					ts.update(getGraphics());
+					
 					angle++;
 				}
 
@@ -233,8 +432,8 @@ public class TurtleSystem extends TurtleGraphics {
 	/*
 	 * Set pen colour to black
 	 */
-	public void black() {
-		this.setPenColour(Color.BLACK);
+	public void blue() {
+		this.setPenColour(Color.BLUE);
 	}
 
 	/**
@@ -275,9 +474,9 @@ public class TurtleSystem extends TurtleGraphics {
 	 * @param parameters - ArrayList<Object> The parameters provided
 	 * @return
 	 */
-	private boolean isValidParamRange(String methodCall, ArrayList<Object> parameters) {
+	private boolean isValidParamRange(String methodName, ArrayList<Object> parameters) {
 		if (parameters.size() >= 1) {
-			switch (methodCall) {
+			switch (methodName) {
 			case "customcolour":
 				if (!utility.verifyRGBRange(parameters)) {
 					JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)", "Not in range",
@@ -294,10 +493,10 @@ public class TurtleSystem extends TurtleGraphics {
 			case "forward":
 			case "backward":
 				if (!utility.numberinGraphicsFrame(parameters, tui)) {
-					JOptionPane.showMessageDialog(ts,
-									"Make sure the number is between the canvas height and width ( " + this.getHeight()
-											+ ", " + this.getWidth() + ")",
-									"Not in range", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(ts, "Number not in canvas height and width ( " 
+							+ this.getHeight() + ", " + this.getWidth() + ")" 
+							+ "or an invalid parameter",
+									"Parameter Warning", JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
 			}

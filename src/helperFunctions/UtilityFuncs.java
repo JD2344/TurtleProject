@@ -64,6 +64,8 @@ public class UtilityFuncs {
 				} else {
 					return false;
 				}
+			} else {
+				return false;
 			}
 		}
 		return false;
@@ -114,12 +116,15 @@ public class UtilityFuncs {
 	 * Displays JOptionPane to user about unsaved items
 	 * @param tS - TurtleSystem Object
 	 */
-	public void saveConfirmation(TurtleSystem tS) {
+	public boolean saveConfirmation(TurtleSystem tS) {
 		int action = JOptionPane.showConfirmDialog(tS, "The Current image is not saved. " 
 				+ "Do you want to continue?", "Unsaved Image", JOptionPane.YES_NO_OPTION);
 		if(action == JOptionPane.YES_OPTION) {
-			tS.clear();
+			return true;
+		} else if(action == JOptionPane.NO_OPTION) {
+			return false;
 		}
+		return false;
 	}
 	
 	/**
@@ -158,7 +163,8 @@ public class UtilityFuncs {
 	 * Uses reflection to get a matching method based on a string command and the number of parameters
 	 * 
 	 * @param methods      - ArrayList<Method>
-	 * @param Method Name - String method name in lowercase
+	 * @param command Name - String method name in lowercase
+	 * @param parameters   - ArrayList<Object> the parameters
 	 * @return Method if found else null
 	 */
 	public ArrayList<Method> getMatchedMethod(ArrayList<Method> methods, String command, ArrayList<Object> parameters) {
@@ -194,7 +200,7 @@ public class UtilityFuncs {
 				for (Object command : commands) {
 					doMatch = wrappedClass == command.getClass().getTypeName();
 					if (!doMatch) {
-						return doMatch;
+						return doMatch; //If one doesn't match. Stop.
 					}
 				}
 			}

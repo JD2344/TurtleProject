@@ -67,6 +67,8 @@ public class TurtleUI {
 		mainFrame.add(setBottomPanel());
 		mainFrame.pack();// set the frame to a size we can see
 		mainFrame.setVisible(true);// now display it
+		mainFrame.validate();
+		mainFrame.repaint();
 
 		// Allows resizeable nature of graphics container on screen.
 		mainFrame.addComponentListener(new ComponentAdapter() {
@@ -108,7 +110,7 @@ public class TurtleUI {
 	
 	private JPanel setBottomPanel() {
 		JPanel bottomPanel = new JPanel();
-		JLabel panelSize = new JLabel("Height: Width: ");
+		JLabel panelSize = new JLabel("Height: "+ mainFrame.getHeight() + " Width: " + mainFrame.getWidth());
 		panelSize.setForeground(Color.RED);
 		bottomPanel.add(panelSize);
 		bottomPanel.setOpaque(false);
