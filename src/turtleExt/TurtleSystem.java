@@ -5,9 +5,14 @@ import helperFunctions.UtilityFuncs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+
 import javax.swing.JOptionPane;
-import java.lang.reflect.*;
+import javax.swing.SwingWorker;
+
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.lang.reflect.*;
 
 /**
  * Implements TurtleGraphics and renders Turtle Objects and Sprite.
@@ -44,9 +49,11 @@ public class TurtleSystem extends TurtleGraphics {
 	 * Default constructor Build UI and other required elements
 	 */
 	private TurtleSystem() {
+		this.setBackground_Col(Color.black);
 		methods = buildMethodList();
 		this.utility = new UtilityFuncs();
-		this.reset();
+		this.tui = new TurtleUI(this);
+		this.reset(); 
 	}
 
 	/**
@@ -56,15 +63,6 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	public static TurtleSystem getTurtle() {
 		return ts;
-	}
-
-	/**
-	 * Set the Turtle UI object
-	 * 
-	 * @param tui
-	 */
-	public void setTurtleUI(TurtleUI tui) {
-		this.tui = tui;
 	}
 
 	/**
@@ -92,15 +90,15 @@ public class TurtleSystem extends TurtleGraphics {
 				if (methodParamSize == parameters.size()) {
 					if (methodParamSize >= 1) {
 						if (isValidParamRange(methodCall, parameters)) {
-							utility.invokeMethod(methodParamSize, parameters, m, ts);
+							utility.invokeMethod(methodParamSize, parameters, m, this);
 						}
 					} else {
-						utility.invokeMethod(0, new ArrayList<Object>(), m, ts); // 0 Parameters
+						utility.invokeMethod(0, new ArrayList<Object>(), m, this); // 0 Parameters
 					}
 				}
 			}
 		} else {
-			JOptionPane.showMessageDialog(ts,
+			JOptionPane.showMessageDialog(this,
 					"The command: \"" + command + "\" is not valid, or " + "the Parameters were incorrect. ",
 					"Invalid Input", JOptionPane.ERROR_MESSAGE);
 		}
@@ -111,74 +109,61 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	@Override
 	public void about() {
-		Thread t = new Thread(new Runnable() {
+		new SwingWorker<Object, Object>() {
 			@Override
-			public void run() {
+			protected Object doInBackground() throws Exception {
 				superAbout();
-				sleepCustom(3);
+				Thread.sleep(3000);
 				ts.clear();
 				ts.getGraphicsContext().drawString("Lame... That had to go...", ts.getxPos() / 2 - 50, ts.getyPos());
-				sleepCustom(3);
+				Thread.sleep(3000);
 				ts.clear();
 				ts.getGraphicsContext().drawString("Watch this instead!", ts.getxPos() / 2 - 50, ts.getyPos());
-				sleepCustom(3);
+				Thread.sleep(3000);
 				ts.clear();
 				ts.displayMessage("TurtleGraphics V3.0");
 				ts.getGraphicsContext().drawString("Here is a bad circle...", ts.getxPos() / 2 - 50, ts.getyPos());
 				circle(100);
-				sleepCustom(3);
+				Thread.sleep(4000);
 				ts.clear();
 				ts.getGraphicsContext().drawString("Here are some better circles", ts.getxPos() / 2 - 50, ts.getyPos());
-				sleepCustom(3);
+				Thread.sleep(3000);
 				ts.clear();
-				makeBresenhams();
+				makeBresenhams().get();
 				ts.clear();
-				hexagon();
+				hexagon().get();
+				Thread.sleep(3000);
 				ts.clear();
-				honeyCombe();
+				honeyCombe().get();
 				ts.clear();
-				lightsaber();
-				ts.getGraphicsContext().drawString("This was Turtle Graphics v3", ts.getxPos() / 2 - 50, ts.getyPos());
+				lightsaber().get();
+				ts.getGraphicsContext().drawString("this was Turtle Graphics v3", ts.getxPos() / 2 - 50, ts.getyPos());
 				ts.setTurtleSpeed(0);
+				return null;
 			}
-		});
-		t.start();
+		}.execute();
 	}
-	
-	/**
-	 * Pause thread execution by a few seconds
-	 * @param tts - number in seconds
-	 */
-	private void sleepCustom(int tts) {
-		try {
-			Thread.sleep(tts * 1000);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(ts, e.getMessage());
-		}
-	}
-	
+
 	/**
 	 * Run the original about method
 	 */
-	private void superAbout() {
-		this.setBackground(Color.BLACK);
+	public void superAbout() {
 		super.about();
 	}
 
 	/**
 	 * Make a row of lightsabers Red, yellow, green, blue, cyan, orange
 	 */
-	public void lightsaber() {
-		Thread t = new Thread(new Runnable() {
+	public SwingWorker<Object, Object> lightsaber() {
+		SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
 			@Override
-			public void run() {
+			protected Object doInBackground() throws Exception {
 				ts.getGraphicsContext().drawString("LIGHTSABERS", ts.getWidth() / 3, ts.getHeight() / 2 - 100);
 				ts.setxPos(ts.getWidth() / 6);
 				ts.setyPos(ts.getHeight() / 2 + 10);
 				ts.setTurtleSpeed(50);
-				
 				ts.penDown();
-				
+
 				for (int c = 0; c < 6; c++) {
 					ts.customColour(128, 128, 128);
 					turnLeft();
@@ -207,16 +192,18 @@ public class TurtleSystem extends TurtleGraphics {
 					ts.setxPos(ts.getxPos() + 100);
 				}
 				ts.penUp();
+				return null;
 			}
-		});
-		t.start();
+		};
+		sw.execute();
+		return sw;
 	}
 
 	/**
 	 * Switches colour based on a number input
 	 * 
 	 * @param number
-	 * @return
+	 * @return Color
 	 */
 	private Color changeColour(int number) {
 		switch (number) {
@@ -240,50 +227,68 @@ public class TurtleSystem extends TurtleGraphics {
 	/**
 	 * Make a honeycombe like animation
 	 */
-	public void honeyCombe() {
-		Random r = new Random();
-		ts.setTurtleSpeed(500);
-		ts.setxPos(this.getWidth() / 3);
-		ts.setyPos(this.getHeight() / 2);
-		ts.penDown();
-		for (int combes = 0; combes < 5; combes++) {
-			for (int sides = 0; sides < 8; sides++) {
-				customColour(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-				ts.turnLeft(45);
-				ts.forward(50);
+	public SwingWorker<Object, Object> honeyCombe() {
+		SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
+			@Override
+			protected Object doInBackground() throws Exception {
+				Random r = new Random();
+				ts.setTurtleSpeed(50);
+				ts.setxPos(ts.getWidth() / 4);
+				ts.setyPos(ts.getHeight() / 2);
+				ts.penDown();
+				for (int combes = 0; combes < 5; combes++) {
+					for (int sides = 0; sides < 8; sides++) {
+						customColour(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+						ts.turnLeft(45);
+						ts.forward(50);
+					}
+					ts.setxPos(ts.getxPos() + 100);
+				}
+				ts.penUp();
+				red();
+				ts.reset();
+				ts.setTurtleSpeed(0);
+				return null;
 			}
-			ts.setxPos(this.getxPos() + 100);
-		}
-		ts.penUp();
-		red();
-		ts.reset();
+		};
+		sw.execute();
+		return sw;
 	}
 
 	/**
 	 * Makes a hexagon shape halfway in the canvas
 	 */
-	public void hexagon() {
-		ts.setTurtleSpeed(50);
-		ts.setxPos(ts.getWidth() / 2);
-		ts.setyPos(ts.getHeight() / 2 - 50);
-		ts.getGraphicsContext().drawString("Hexagon", ts.getWidth() / 4, ts.getHeight() / 2 - 60);
-		ts.penDown();
-		for (int sides = 0; sides < 6; sides++) {
-			ts.getGraphicsContext().drawString(String.valueOf(sides + 1), ts.getxPos(), ts.getyPos() - 5);
-			ts.forward(100);
-			ts.turnRight(60);
-		}
-		ts.penUp();
-		sleepCustom(2);
+	public SwingWorker<Object, Object> hexagon() {
+		SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
+			@Override
+			protected Object doInBackground() throws Exception {
+				ts.setTurtleSpeed(50);
+				ts.setxPos(ts.getWidth() / 2);
+				ts.setyPos(ts.getHeight() / 2 - 50);
+				ts.getGraphicsContext().drawString("Hexagon", ts.getWidth() / 4, ts.getHeight() / 2 - 60);
+				ts.penDown();
+				for (int sides = 0; sides < 6; sides++) {
+					ts.getGraphicsContext().drawString(String.valueOf(sides + 1), ts.getxPos(), ts.getyPos() - 5);
+					ts.forward(100);
+					ts.turnRight(60);
+					ts.repaint();
+				}
+				ts.penUp();
+				ts.setTurtleSpeed(0);
+				return null;
+			}
+		};
+		sw.execute();
+		return sw;
 	}
 
 	/**
 	 * Provides an animation of making 4 bresenhams circles
 	 */
-	public void makeBresenhams() {
-		Thread t = new Thread(new Runnable() {
+	public SwingWorker<Object, Object> makeBresenhams() {
+		SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
 			@Override
-			public void run() {
+			protected Object doInBackground() throws Exception {
 				ts.setTurtleSpeed(5);
 				ts.setxPos(ts.getWidth() / 5);
 				ts.setyPos(ts.getHeight() / 2);
@@ -329,10 +334,11 @@ public class TurtleSystem extends TurtleGraphics {
 				}
 				ts.penUp();
 				ts.reset();
-				
+				return null;
 			}
-		});
-		t.start();
+		};
+		sw.execute();
+		return sw;
 	}
 
 	/**
@@ -373,12 +379,12 @@ public class TurtleSystem extends TurtleGraphics {
 	 */
 	@Override
 	public void circle(int radius) {
-		Thread t = new Thread(new Runnable() {
+		new SwingWorker<Object, Object>() {
 			@Override
-			public void run() {
+			protected Object doInBackground() throws Exception {
 				int initialX = ts.getxPos(), xp = ts.getxPos();
 				int initialY = ts.getyPos(), yp = ts.getyPos();
-				// ts.setTurtleSpeed(5);
+				// this.setTurtleSpeed(5);
 				int angle = 0;
 				// Loop over 360 times and set the respective X/Y pos to correspond to cos and
 				// sine Trigonometry
@@ -389,16 +395,15 @@ public class TurtleSystem extends TurtleGraphics {
 					ts.setyPos(Math.round(Math.round(radius * Math.sin(angle))) + initialY);
 					ts.turnRight(Math.round(Math.round(radius * Math.tan(angle))));
 					ts.forward(1);
-					
 					angle++;
 				}
 
 				ts.penUp();
 				ts.setxPos(xp);
 				ts.setyPos(yp);
+				return null;
 			}
-		});
-		t.start();
+		}.execute();
 	}
 
 	/**
@@ -426,14 +431,22 @@ public class TurtleSystem extends TurtleGraphics {
 	 * Clears the display
 	 */
 	public void New() {
-		utility.saveConfirmation(ts);
+		if(utility.saveConfirmation(this))
+			this.clear();
+	}
+
+	/*
+	 * Set pen colour to blue
+	 */
+	public void blue() {
+		this.setPenColour(Color.BLUE);
 	}
 
 	/*
 	 * Set pen colour to black
 	 */
-	public void blue() {
-		this.setPenColour(Color.BLUE);
+	public void black() {
+		this.setPenColour(Color.BLACK);
 	}
 
 	/**
@@ -479,24 +492,22 @@ public class TurtleSystem extends TurtleGraphics {
 			switch (methodName) {
 			case "customcolour":
 				if (!utility.verifyRGBRange(parameters)) {
-					JOptionPane.showMessageDialog(ts, "One or more numbers not in RGB range (0-255)", "Not in range",
-							JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
 			case "turnleft":
 			case "turnright":
 				if (!utility.withinAngleRange(parameters)) {
-					JOptionPane.showMessageDialog(ts, "One or more numbers not in angle range (0-360)", "Not in range",
-							JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(this, "One or more numbers not in angle range (0-360)",
+							"Not in range", JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
 			case "forward":
 			case "backward":
-				if (!utility.numberinGraphicsFrame(parameters, tui)) {
-					JOptionPane.showMessageDialog(ts, "Number not in canvas height and width ( " 
-							+ this.getHeight() + ", " + this.getWidth() + ")" 
-							+ "or an invalid parameter",
-									"Parameter Warning", JOptionPane.WARNING_MESSAGE);
+				if (!utility.numberinGraphicsFrame(parameters, this.getHeight(), this.getWidth())) {
+					JOptionPane.showMessageDialog(
+							this, "Number not in canvas height and width ( " + this.getHeight() + ", " + this.getWidth()
+									+ ")" + " or an invalid parameter",
+							"Parameter Warning", JOptionPane.WARNING_MESSAGE);
 					return false;
 				}
 			}
@@ -513,8 +524,10 @@ public class TurtleSystem extends TurtleGraphics {
 		ArrayList<Method> ml = new ArrayList<Method>();
 		Method[] tsm = this.getClass().getMethods(); // Returns all methods within this and child classes
 
-		for (Method m : tsm) {
-			ml.add(m);
+		for (Method m : tsm) {			
+			if (m.getDeclaringClass().getName() == "turtleExt.TurtleSystem" || m.getDeclaringClass().getName() == "uk.ac.leedsbeckett.oop.TurtleGraphics") {
+				ml.add(m);
+			}
 		}
 		return ml;
 	}

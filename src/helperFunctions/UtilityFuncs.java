@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 import turtleExt.TurtleSystem;
-import turtleExt.TurtleUI;
 
 /**
  * Utility Library for useful Functions
@@ -51,15 +50,13 @@ public class UtilityFuncs {
 	 * Validates the parameters to make sure they are Postive and within the frames boundaries.
 	 * @param parameters - ArrayList<Object> The parameters to be checked
 	 * @param ui - TurtleUI - The UI elements associated
-	 * @return
+	 * @returnC
 	 */
-	public boolean numberinGraphicsFrame(ArrayList<Object> parameters, TurtleUI ui) {
+	public boolean numberinGraphicsFrame(ArrayList<Object> parameters, int height, int width) {
 		for(Object o : parameters) {
 			if (o instanceof Integer) {
 				//If parameter is an integer and between the frame boundaries
-				if((int)o >= 0 && ((int)o <= 
-						(ui.mainFrame.getHeight() > ui.mainFrame.getWidth() ? 
-								ui.mainFrame.getHeight(): ui.mainFrame.getWidth()))) {
+				if((int)o >= 0 && ((int)o <= (height > width ? height: width))) {
 					return true;
 				} else {
 					return false;

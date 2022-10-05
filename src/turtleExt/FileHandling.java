@@ -38,7 +38,6 @@ public class FileHandling {
 		final JFileChooser fc = new JFileChooser();
 		fc.setFileFilter(imageFilter);
 
-		if (tS.utility.saveConfirmation(tS)) {
 			int returnVal = fc.showSaveDialog(tS);
 
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -49,7 +48,7 @@ public class FileHandling {
 					Optional<String> o = Arrays.stream(writerNames).filter(fileName::contains).findAny();
 					BufferedImage bi = tS.getBufferedImage();
 					if (!o.isEmpty()) {
-						boolean hasWriter = ImageIO.write(bi, o.get(), output);
+						boolean hasWriter = ImageIO.write(bi, !o.get().isEmpty()? o.get(): ".png", output);
 
 						if (hasWriter) {
 							mainFrame.setTitle("TurtleGraphics - " + fileName);
@@ -58,8 +57,7 @@ public class FileHandling {
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(fc, e.getMessage());
 				}
-			}
-		}
+			}	
 	}
 
 	/**

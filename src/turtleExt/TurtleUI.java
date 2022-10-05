@@ -1,7 +1,17 @@
 package turtleExt;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+import java.awt.Paint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -12,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -23,6 +34,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
+import javax.swing.*;
 
 import helperFunctions.UtilityFuncs;
 
@@ -33,10 +46,28 @@ import helperFunctions.UtilityFuncs;
  *
  */
 public class TurtleUI {
+	/**
+	 * TurtleSystem Object
+	 */
 	private TurtleSystem tS;
+	/**
+	 * File Handler
+	 */
 	private FileHandling fileHandle;
+	/**
+	 * Utility Library
+	 */
 	private UtilityFuncs helpS;
+	/**
+	 * The JFrame Context
+	 */
 	public JFrame mainFrame;
+	
+	/**
+	 * Height/Width Label
+	 */
+	private JLabel panelSize;
+	
 
 	/**
 	 * Handles the GUI for the Main program
@@ -48,6 +79,7 @@ public class TurtleUI {
 		helpS = ts.utility;
 		mainFrame = buildUIFrame();
 		fileHandle = new FileHandling(mainFrame, ts);
+		customLayout();
 	}
 
 	/**
@@ -60,34 +92,40 @@ public class TurtleUI {
 		JMenuBar mb = buildUpperMenuBar();
 		mainFrame = new JFrame();
 		mainFrame.setJMenuBar(mb);// Set the menu bar
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainFrame.setTitle("TurtleGraphics - *Untitled");
+		mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setDefaultWindowTitle();
 		mainFrame.setContentPane(tS);
-		mainFrame.add(manipulateCurrentTurtleUI());
-		mainFrame.add(setBottomPanel());
 		mainFrame.pack();// set the frame to a size we can see
 		mainFrame.setVisible(true);// now display it
-		mainFrame.validate();
-		mainFrame.repaint();
 
 		// Allows resizeable nature of graphics container on screen.
 		mainFrame.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent ev) {
-				int height = mainFrame.getHeight();
-				int width = mainFrame.getWidth();
+				int height = tS.getHeight();
+				int width = tS.getWidth();
 				tS.setPanelSize(width, height);
+				panelSize.setText("Height: "+ tS.getHeight() + " Width: " + tS.getWidth());
 				tS.reset();
 			}
 		});
 
 		mainFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				JFrame frame = (JFrame) e.getSource();
-				System.out.println("Closing = " + frame.getTitle());
+				if(helpS.saveConfirmation(tS)) {
+					mainFrame.dispose();
+					System.exit(0);
+				}
 			}
 		});
 
 		return mainFrame;
+	}
+
+	/**
+	 * Sets the default window title
+	 */
+	private void setDefaultWindowTitle() {
+		mainFrame.setTitle("TurtleGraphics - *Untitled");
 	}
 
 	/**
@@ -108,10 +146,14 @@ public class TurtleUI {
 		return mBar;
 	}
 	
+	/**
+	 * Creates a jpanel with height/width information
+	 * @return
+	 */
 	private JPanel setBottomPanel() {
 		JPanel bottomPanel = new JPanel();
-		JLabel panelSize = new JLabel("Height: "+ mainFrame.getHeight() + " Width: " + mainFrame.getWidth());
-		panelSize.setForeground(Color.RED);
+		panelSize = new JLabel("Height: "+ tS.getHeight() + " Width: " + tS.getWidth());
+		panelSize.setForeground(Color.ORANGE);
 		bottomPanel.add(panelSize);
 		bottomPanel.setOpaque(false);
 		return bottomPanel;
@@ -132,7 +174,9 @@ public class TurtleUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpS.saveConfirmation(tS);
+				if(helpS.saveConfirmation(tS))
+					tS.clear();
+					setDefaultWindowTitle();
 			}
 		});
 		fileNew.setToolTipText("Opens a new canvas");
@@ -203,7 +247,18 @@ public class TurtleUI {
 		});
 		showInterface.setToolTipText("Show/Hide the Interface");
 
-		JMenuItem helpAbout = new JMenuItem("About");
+		JMenuItem helpAbout = new JMenuItem(new AbstractAction("Help") {
+			/**
+			 * Generated Serial version ID
+			 */
+			private static final long serialVersionUID = 410334401177661816L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println(Thread.currentThread().getName());
+			}
+			
+		});
 		helpAbout.setToolTipText("About this program");
 
 		helpMenu.add(showInterface);
@@ -214,7 +269,7 @@ public class TurtleUI {
 	/**
 	 * Builds a JMenu Object to allow turtle manipulation
 	 * 
-	 * @return
+	 * @return JMenu 
 	 */
 	private JMenu generateGraphicsMenu() {
 		JMenu graphicsMenu = new JMenu("Graphics");
@@ -291,18 +346,21 @@ public class TurtleUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int result = JOptionPane.showConfirmDialog(tS, rgbPanel, "Set RGB Values", JOptionPane.YES_NO_OPTION);
-				if (redField.getText() != null || greenField.getText() != null || blueField.getText() != null) {
-					if (helpS.numberinRGBRange(Integer.valueOf(redField.getText()))
-							&& helpS.numberinRGBRange(Integer.valueOf(blueField.getText()))
-							&& helpS.numberinRGBRange(Integer.valueOf(greenField.getText()))) {
-						if (result == JOptionPane.YES_OPTION) {
-							tS.setPenColour(new Color(Integer.valueOf(redField.getText()),
-									Integer.valueOf(greenField.getText()), Integer.valueOf(blueField.getText())));
-							redField.setText("0");
-							greenField.setText("0");
-							blueField.setText("0");
+				
+				if(result == JOptionPane.YES_OPTION) {
+					if (redField.getText() != null || greenField.getText() != null || blueField.getText() != null) {
+						if (helpS.numberinRGBRange(Integer.valueOf(redField.getText()))
+								&& helpS.numberinRGBRange(Integer.valueOf(blueField.getText()))
+								&& helpS.numberinRGBRange(Integer.valueOf(greenField.getText()))) {
+							if (result == JOptionPane.YES_OPTION) {
+								tS.setPenColour(new Color(Integer.valueOf(redField.getText()),
+										Integer.valueOf(greenField.getText()), Integer.valueOf(blueField.getText())));
+								redField.setText("0");
+								greenField.setText("0");
+								blueField.setText("0");
+							}
 						}
-					}
+					}					
 				}
 			}
 		});
@@ -362,7 +420,7 @@ public class TurtleUI {
 	 * Manipulates the UI that is already rendered within the TurtleSystem Object
 	 * and further allow implementation of on screen elements.
 	 */
-	public JPanel manipulateCurrentTurtleUI() {
+	public JPanel turtleControlsPanel() {
 		ArrayList<Method> upS = new ArrayList<Method>();
 		tS.methods.stream().forEach(m -> {
 			if (m.getName().toLowerCase() == "forward" || m.getName().toLowerCase() == "backward") {
@@ -420,5 +478,52 @@ public class TurtleUI {
 		controls.setOpaque(false);
 
 		return controls;
+	}
+	
+	/**
+	 * Places all existing components on GUI into a panel
+	 */
+	private void customLayout() {
+		Component[] cs = tS.getComponents();
+		
+		GridBagConstraints c = new GridBagConstraints();
+		JPanel outside = new JPanel();
+		outside.setOpaque(false);
+		outside.setBorder(BorderFactory.createLineBorder(Color.blue));
+		outside.setLayout(new GridBagLayout());
+		
+		
+		JPanel inputP = new JPanel();
+		inputP.setBorder(BorderFactory.createLineBorder(Color.orange));
+		inputP.setLayout(new BoxLayout(inputP, BoxLayout.X_AXIS));
+		inputP.setOpaque(false);
+		
+		JTextField input = (JTextField) cs[0];//Input field
+		inputP.add(input);
+		inputP.add(Box.createRigidArea(new Dimension(5,0)));//Add spacer between button
+		
+		JButton sendinput = (JButton) cs[1];//Send input button
+		inputP.add(sendinput);
+		
+		JLabel ver = (JLabel) cs[2];//Version label
+		ver.setForeground(Color.CYAN);
+		inputP.add(ver);
+		
+		c.fill = GridBagConstraints.HORIZONTAL;
+		outside.add(inputP, c);
+		
+		JPanel extras = new JPanel();
+		extras.setBorder(BorderFactory.createLineBorder(Color.red));
+		extras.setOpaque(false);
+		JPanel windowInfo = setBottomPanel();
+		extras.add(windowInfo);
+		JPanel controls = turtleControlsPanel();
+		extras.add(controls);
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		outside.add(extras, c);
+		
+		tS.add(outside);
+		tS.setBorder(BorderFactory.createLineBorder(Color.pink));
 	}
 }
